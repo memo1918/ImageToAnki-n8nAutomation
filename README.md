@@ -80,6 +80,10 @@ Captures and reports workflow errors via Telegram notifications.
 
 ## Workflow Process Flow
 
+![Main Workflow Diagram](images/Main.jpg)
+
+### Process Steps:
+
 ```
 1. User sends image via Telegram
    ↓
@@ -187,18 +191,21 @@ Because n8n is running inside a docker, AnkiConnect is listenin on all connectio
 
 ```json
 {
-  "entries": [
-    {
-      "Kanji": "日本語",
-      "Hiragana": "にほんご",
-      "Meaning": "Japanese language"
-    },
-    {
-      "Kanji": "勉強",
-      "Hiragana": "べんきょう",
-      "Meaning": "study"
-    }
-  ]
+   "output": {
+   "status": true,
+   "message": "Successful.",
+   "entries": [
+      {
+         "Kanji": "洗う",
+         "Hiragana": "あらう",
+         "Meaning": "Yıkamak"
+      },
+      {
+         "Kanji": "ある",
+         "Hiragana": "ある",
+         "Meaning": "Var Olmak"
+      }
+   ]}
 }
 ```
 
@@ -259,10 +266,10 @@ Before adding cards to Anki:
 
 Here's an example of the type of image you can send to the bot:
 
-![Example Input Image](exampleInput/example.jpg)
+![Example Input Image](images/example.jpg)
 
 The system will extract the Japanese text, identify the Kanji, Hiragana readings, and meanings, then create Anki flashcards automatically.
-Model only focues on these three parts. other information that is in the image are disgarded.
+Model only focues on these three parts. other information that is in the image are disgarded. This means other type of images where Kanji,Hiragana and Meaning can be found, should work.
 Models system meesage allows up to 35% of the missing data.
 
 ## Configuration
