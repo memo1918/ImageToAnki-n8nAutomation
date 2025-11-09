@@ -56,6 +56,7 @@ Processes and validates extracted text using Google Gemini AI.
 - Uses Google Gemini 2.5 Flash Lite model
 - Parses AI response (handles both markdown-wrapped and raw JSON)
 - Returns structured data with Japanese entries (Kanji, Hiragana, Meaning)
+- **Smart Gap Filling:** The AI can intelligently fill missing data (any of Kanji, Hiragana, or Meaning) up to 35% of the total entries. If more than 35% of data is missing, the AI will reject the input and return an error, ensuring data quality and preventing excessive guessing. This can be tuned inside the 'AiFields' -> 'System Message'
 
 ### 4. **TextTableCheck** (Deduplication Sub-Workflow)
 **[View Workflow →](https://share-n8n.net/shared/1er2YMryBw1T)**
@@ -269,8 +270,18 @@ Here's an example of the type of image you can send to the bot:
 ![Example Input Image](images/example.jpg)
 
 The system will extract the Japanese text, identify the Kanji, Hiragana readings, and meanings, then create Anki flashcards automatically.
+
 Model only focues on these three parts. other information that is in the image are disgarded. This means other type of images where Kanji,Hiragana and Meaning can be found, should work.
-Models system meesage allows up to 35% of the missing data.
+
+
+
+### Example Conversation
+
+Here's what the interaction with the Telegram bot looks like from the user's perspective:
+
+![Telegram Conversation Example](images/conversation.png)
+
+
 
 ## Configuration
 
