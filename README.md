@@ -6,6 +6,30 @@ An automated workflow system that extracts Japanese text from images sent via Te
 
 This project uses n8n workflows to automate the process of creating Japanese language flashcards from images. The system receives images via Telegram, extracts text using Azure Document Intelligence, validates and organizes the data with AI, and automatically adds new entries to Anki for language learning.
 
+## Usage
+
+1. Send an image containing Japanese text to your Telegram bot
+2. Wait for the automation to process 
+3. Review the extracted entries sent to Telegram
+4. Approve or cancel the addition
+5. Receive confirmation when cards are successfully added to Anki
+
+### Example Input
+
+Here's an example of the type of image you can send to the bot:
+
+![Example Input Image](images/example.jpg)
+
+The system will extract the Japanese text, identify the Kanji, Hiragana readings, and meanings, then create Anki flashcards automatically.
+
+Model only focues on these three parts. other information that is in the image are disgarded. This means other type of images where Kanji,Hiragana and Meaning can be found, should work.
+
+### Example Conversation
+
+Here's what the interaction with the Telegram bot looks like from the user's perspective:
+
+![Telegram Conversation Example](images/conversation.png)
+
 ## Workflow Architecture
 
 The automation consists of five main workflows:
@@ -112,9 +136,82 @@ Captures and reports workflow errors via Telegram notifications.
 11. Send success confirmation to user
 ```
 
-## Prerequisites
+## Data Structure
 
-### Required Services
+### Expected AI Output Format
+
+```json
+{
+   "output": {
+   "status": true,
+   "message": "Successful.",
+   "entries": [
+      {
+         "Kanji": "洗う",
+         "Hiragana": "あらう",
+         "Meaning": "Yıkamak"
+      },
+      {
+         "Kanji": "ある",
+         "Hiragana": "ある",
+         "Meaning": "Var Olmak"
+      }
+   ]}
+}
+```
+
+### n8n Data Table Schema
+
+The workflow maintains a data table with columns:
+- **Kanji** - Japanese characters (used for deduplication)
+- **Hiragana** - Phonetic reading
+- **Meaning** - English translation
+
+## Error Handling
+
+- All errors are captured by the Error Handler workflow
+- Notifications sent via Telegram include:
+  - Error message
+  - Failed workflow name
+  - Last executed node
+  - Execution ID for debugging
+- Specific error conditions:
+  - No text found in image
+  - Iteration timeout (max retries exceeded)
+  - Duplicate entries detected
+  - Invalid file type
+
+## Features
+
+### Retry Mechanism
+If initial text extraction fails or AI output is invalid, the workflow:
+1. Processes OCR text through AI for correction
+2. Re-runs the AI validation with corrected input
+3. Tracks iteration count to prevent infinite loops
+
+### Deduplication
+Before adding cards to Anki:
+- Checks existing entries in n8n data table
+- Filters out duplicates based on Kanji field
+- Only processes unique entries
+
+### User Approval
+- Formatted preview sent to user via Telegram
+- Waits for explicit approval before adding to Anki
+- Supports cancellation option
+
+### Synchronization
+- Pre-sync before adding cards
+- Post-sync after cards are added
+- Ensures AnkiWeb stays up to date
+
+---
+
+## Setup & Installation
+
+### Prerequisites
+
+**Required Services:**
 
 1. **n8n** - Workflow automation platform
 2. **Telegram Bot** - For receiving images and sending notifications
@@ -185,103 +282,6 @@ Because n8n is running inside a docker, AnkiConnect is listenin on all connectio
 - Anki is running when the workflow executes
 - AnkiConnect is listening on the correct port
 - Network permissions allow n8n to communicate with AnkiConnect
-
-## Data Structure
-
-### Expected AI Output Format
-
-```json
-{
-   "output": {
-   "status": true,
-   "message": "Successful.",
-   "entries": [
-      {
-         "Kanji": "洗う",
-         "Hiragana": "あらう",
-         "Meaning": "Yıkamak"
-      },
-      {
-         "Kanji": "ある",
-         "Hiragana": "ある",
-         "Meaning": "Var Olmak"
-      }
-   ]}
-}
-```
-
-### n8n Data Table Schema
-
-The workflow maintains a data table with columns:
-- **Kanji** - Japanese characters (used for deduplication)
-- **Hiragana** - Phonetic reading
-- **Meaning** - English translation
-
-## Error Handling
-
-- All errors are captured by the Error Handler workflow
-- Notifications sent via Telegram include:
-  - Error message
-  - Failed workflow name
-  - Last executed node
-  - Execution ID for debugging
-- Specific error conditions:
-  - No text found in image
-  - Iteration timeout (max retries exceeded)
-  - Duplicate entries detected
-  - Invalid file type
-
-## Features
-
-### Retry Mechanism
-If initial text extraction fails or AI output is invalid, the workflow:
-1. Processes OCR text through AI for correction
-2. Re-runs the AI validation with corrected input
-3. Tracks iteration count to prevent infinite loops
-
-### Deduplication
-Before adding cards to Anki:
-- Checks existing entries in n8n data table
-- Filters out duplicates based on Kanji field
-- Only processes unique entries
-
-### User Approval
-- Formatted preview sent to user via Telegram
-- Waits for explicit approval before adding to Anki
-- Supports cancellation option
-
-### Synchronization
-- Pre-sync before adding cards
-- Post-sync after cards are added
-- Ensures AnkiWeb stays up to date
-
-## Usage
-
-1. Send an image containing Japanese text to your Telegram bot
-2. Wait for the automation to process 
-3. Review the extracted entries sent to Telegram
-4. Approve or cancel the addition
-5. Receive confirmation when cards are successfully added to Anki
-
-### Example Input
-
-Here's an example of the type of image you can send to the bot:
-
-![Example Input Image](images/example.jpg)
-
-The system will extract the Japanese text, identify the Kanji, Hiragana readings, and meanings, then create Anki flashcards automatically.
-
-Model only focues on these three parts. other information that is in the image are disgarded. This means other type of images where Kanji,Hiragana and Meaning can be found, should work.
-
-
-
-### Example Conversation
-
-Here's what the interaction with the Telegram bot looks like from the user's perspective:
-
-![Telegram Conversation Example](images/conversation.png)
-
-
 
 ## Configuration
 
