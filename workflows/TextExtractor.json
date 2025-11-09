@@ -1,0 +1,319 @@
+{
+  "name": "TextExtractor",
+  "nodes": [
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        288,
+        112
+      ],
+      "id": "f056773d-9bf7-41bc-b6f9-2542a7c28a8c",
+      "name": "Wait",
+      "webhookId": "38ea3258-a428-454e-8f5b-7de8f2f4cd8d"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Azure OCR Post').item.json.headers['operation-location'] }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        512,
+        32
+      ],
+      "id": "1c87c761-7044-4734-ae46-9bd404488646",
+      "name": "Azure OCR Get",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "kvTspBJWLw0F0isD",
+          "name": "Azure Document API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0c89fa62-7953-419e-8be9-b60b89c6f607",
+              "leftValue": "={{ $json.body.status }}",
+              "rightValue": "succeeded",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        112
+      ],
+      "id": "93a5b680-4637-4694-a924-599b8a0bb588",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$json.azureOcrUrl + $json.ocrModel}}:analyze?api-version=2024-11-30 ",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/octet-stream"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "=data",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -160,
+        112
+      ],
+      "id": "fc5e3c3a-de0e-4a10-98c6-c8df7fa657bf",
+      "name": "Azure OCR Post",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "kvTspBJWLw0F0isD",
+          "name": "Azure Document API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -384,
+        112
+      ],
+      "id": "ec9fbc0b-2a9c-4c7b-9512-aee3f890d3e8",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        112
+      ],
+      "id": "18316078-57f7-475e-976c-903fa85e64b2",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d31cc5dd-89aa-4de7-906a-06a4a4a27ad1",
+              "name": "content",
+              "value": "={{ $json.body.analyzeResult.content }}",
+              "type": "string"
+            },
+            {
+              "id": "165ccd93-618d-4abf-8484-d3b4d3dc73f8",
+              "name": "modelId",
+              "value": "={{ $json.body.analyzeResult.modelId }}",
+              "type": "string"
+            },
+            {
+              "id": "a43e3ac5-2c0c-4ba2-a4b2-eb7d25fd8325",
+              "name": "operation-location",
+              "value": "={{ $('Azure OCR Post').item.json.headers['operation-location'] }}",
+              "type": "string"
+            },
+            {
+              "id": "322181c3-1005-41ba-a5e4-50d42d7cac9a",
+              "name": "azureOcrUrl",
+              "value": "={{ $('When Executed by Another Workflow').item.json.azureOcrUrl }}",
+              "type": "string"
+            },
+            {
+              "id": "4583b264-1fac-44c1-9328-2635ad41600d",
+              "name": "message.caption",
+              "value": "={{ $('When Executed by Another Workflow').item.json.message.caption }}",
+              "type": "string"
+            },
+            {
+              "id": "cd515cc4-7bad-4bb5-8902-b4175e8049a5",
+              "name": "itteration",
+              "value": "={{ $('When Executed by Another Workflow').item.json.itteration }}",
+              "type": "number"
+            },
+            {
+              "id": "f3ea5f8a-5824-4a5e-92ea-24c79e7fd517",
+              "name": "data",
+              "value": "={{ $('When Executed by Another Workflow').item.binary.data }}",
+              "type": "binary"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        960,
+        112
+      ],
+      "id": "7b2785b1-50e9-4936-b3eb-0dad616e1cba",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "includeOtherFields": true,
+        "include": "selected",
+        "includeFields": "headers['operation-location'], azureOcrUrl, ocrModel,data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        64,
+        112
+      ],
+      "id": "66175402-811c-4032-9e3b-3ca30b7546fb",
+      "name": "Edit Fields1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Azure OCR Get",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OCR Get": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OCR Post": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Azure OCR Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6499d7a4-34a6-44ab-a039-6d8c8ca3411b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f2231c63e1e4ae7cfba5a14a6ed098d320bf50b920ac7343f55b1b02afcbc0ec"
+  },
+  "id": "Vraz4Nrr2j13dVcT",
+  "tags": []
+}

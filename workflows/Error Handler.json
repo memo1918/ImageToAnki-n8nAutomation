@@ -1,0 +1,115 @@
+{
+  "name": "Error Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "693cf8bf-75c9-4c1f-a791-0e9314ac9d85",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "chatId": "5123944762",
+        "text": "={{ $json.Output }}\nWorkflow: {{ $json.workflow }}\nLastNode: {{ $json.lastnode }}\nExecutionID: {{ $json.executionId }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "fc4dd4f7-1f20-4037-b4e0-0305c1f5eca5",
+      "name": "Send a text message",
+      "webhookId": "041a84fe-3691-40cb-b1e8-0303dec790a7",
+      "credentials": {
+        "telegramApi": {
+          "id": "5ur02MzHjnADO6CG",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1953d96a-66c4-4683-b7e9-ac97f4165b7f",
+              "name": "Output",
+              "value": "=Message: {{ $json.execution.error.node.parameters.errorMessage }}",
+              "type": "string"
+            },
+            {
+              "id": "69d69578-f8da-4eb4-a78d-0a0af555b09f",
+              "name": "workflow",
+              "value": "={{ $json.workflow.name }}",
+              "type": "string"
+            },
+            {
+              "id": "0bf3428e-7b8a-4dd1-b3e0-e1be2865837b",
+              "name": "lastnode",
+              "value": "={{ $json.execution.lastNodeExecuted }}",
+              "type": "string"
+            },
+            {
+              "id": "6f17d701-98f0-456d-b46b-844ae21e1587",
+              "name": "executionId",
+              "value": "={{ $json.execution.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ],
+      "id": "b42e1ba6-d151-4cbd-8b92-905ff62456fd",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6b05d202-6a5c-4175-b925-d843ee5ebeee",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f2231c63e1e4ae7cfba5a14a6ed098d320bf50b920ac7343f55b1b02afcbc0ec"
+  },
+  "id": "EWaS93OKDas5MV4y",
+  "tags": []
+}

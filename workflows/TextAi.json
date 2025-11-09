@@ -1,0 +1,125 @@
+{
+  "name": "TextAi",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.content }}",
+        "options": {
+          "systemMessage": "={{ $json.systemMessage }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1056,
+        -400
+      ],
+      "id": "a973c7f2-7c33-414c-bd63-43994fd337cd",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        -240
+      ],
+      "id": "1f9886b4-90f7-4dff-997c-4eb5a450dbab",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "LJeSR9n7glUUDZFg",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawText = $input.first().json.output;;\n\n// 2. Use a regular expression to find the JSON content.\n// This regex looks for either:\n//   - Content inside a ```json ... ``` block (match[1])\n//   - A raw object starting with { and ending with } (match[2])\nconst match = rawText.match(/```json\\s*([\\s\\S]*?)\\s*```|({[\\s\\S]*})/);\n\n// 3. Get the actual JSON string (whichever part matched).\n// We prioritize the markdown-wrapped content (match[1]) if it exists.\nconst jsonString = match[1] || match[2];\n\n// 4. Check if we actually found any JSON.\nif (!jsonString) {\n  throw new Error(\"Could not find any JSON content in the AI output.\");\n}\n\n// 5. Parse the *clean* JSON string.\nconst parsedJson = JSON.parse(jsonString);\n\n// 6. Return the data, nested under an 'output' field\n// so you can access it as $json.output.content\nreturn [{ json: { output: parsedJson } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1408,
+        -400
+      ],
+      "id": "a3e5b58f-8419-43e3-8044-647c62f4d3dc",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "content",
+              "type": "any"
+            },
+            {
+              "name": "systemMessage",
+              "type": "any"
+            }
+          ]
+        }
+      },
+      "id": "cba18b13-6b12-4cde-bef9-eac7fe75a650",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        832,
+        -400
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c760ea88-74e2-429c-b673-39643d2c8905",
+  "meta": {
+    "instanceId": "f2231c63e1e4ae7cfba5a14a6ed098d320bf50b920ac7343f55b1b02afcbc0ec"
+  },
+  "id": "w3q9u9lBl8416dkl",
+  "tags": []
+}

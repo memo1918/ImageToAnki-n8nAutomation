@@ -1,0 +1,109 @@
+{
+  "name": "TextTableCheck",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        272,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "ic0D3xvPQvzKPtdp",
+          "mode": "list",
+          "cachedResultName": "Kanji",
+          "cachedResultUrl": "/projects/KfD03bNsyFDHoWgI/datatables/ic0D3xvPQvzKPtdp"
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        496,
+        352
+      ],
+      "id": "28b0c210-f323-4503-bebd-5ccfb55a49f5",
+      "name": "Get row(s)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Get the existing database entries (this is the input to this node)\n// $input.json is the array of {Kanji: \"...\"} from the DB (Find) node\nconst dbItems = $input.all()\n\n// 2. Get the new entries by referencing the SUBFLOW TRIGGER node\n\nconst newEntries = $('When Executed by Another Workflow').first().json.output.entries;\n// 3. Create a high-speed lookup Set of all existing Kanji\nconst existingKanji = new Set(dbItems.map(item => item.json.Kanji));\n\n// 4. Filter the newEntries array\nconst entriesToAdd = newEntries.filter(entry => {\n  // Return true (keep) only if the Kanji is NOT in the Set\n  return !existingKanji.has(entry.Kanji);\n});\n\n// 5. Return the list of items to be created.\n// n8n will run the next node (DB Create) once for each item in this array.\nreturn entriesToAdd.map(item => ({ json: item }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        352
+      ],
+      "id": "b367a63b-8acd-4f05-af30-d09edfc3c9e5",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        944,
+        352
+      ],
+      "id": "1d4ca9d3-b819-4cf0-9a10-f366ea74f189",
+      "name": "No Operation, do nothing"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9dadd035-f88d-436b-bb06-c9d413fbe711",
+  "meta": {
+    "instanceId": "f2231c63e1e4ae7cfba5a14a6ed098d320bf50b920ac7343f55b1b02afcbc0ec"
+  },
+  "id": "4ahpiSKkyZsIDvt7",
+  "tags": []
+}

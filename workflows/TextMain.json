@@ -1,0 +1,1849 @@
+{
+  "name": "TextMain",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": true
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        -592
+      ],
+      "id": "2d3af965-3b35-4a91-911d-78b926d8017a",
+      "name": "Telegram Trigger",
+      "webhookId": "12aeed69-d82f-4aab-ad7b-1ebdd372c688",
+      "credentials": {
+        "telegramApi": {
+          "id": "5ur02MzHjnADO6CG",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Vraz4Nrr2j13dVcT",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Vraz4Nrr2j13dVcT",
+          "cachedResultName": "TextExtractor"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {}
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        576,
+        -592
+      ],
+      "id": "64993e39-8421-4c36-ad81-f754676a4d4b",
+      "name": "Call 'TextExtractor'"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n\"azureOcrUrl\":\"https://textanalyzerai.cognitiveservices.azure.com/documentintelligence/documentModels/\",\n\"ocrModel\":\"prebuilt-layout\",\n  \"itteration\":0\n}\n",
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        368,
+        -592
+      ],
+      "id": "d4d2b6aa-e011-40f6-81ae-c1a3fd91fe94",
+      "name": "Azure Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "742bce80-cf54-41aa-a08a-e7f6290def37",
+              "name": "systemMessage",
+              "value": "**TASK:** Refine a raw Japanese-text extraction result into a structured, complete dictionary-style format.  \n**REQUIRED OUTPUT STRUCTURE (SCHEMA):** Each entry must contain the following fields: 1. **Kanji** 2. **Hiragana** (Reading) (Mentioned Hiragana/Reading field can be Katakana as well) 3. **Turkish** or **English** (Meaning)  \n## Step 1: Initial Filtering and Organization  1.  **Strict Filtering:** Analyze the raw input text. For each Japanese word identified, extract the existing **Kanji**, **Hiragana** and **Meaning** components provided by the raw input. 2.  **Constraint:** You **MUST NOT** add, translate, or remove any information during this step. Your sole action is to organize the existing data into the defined structure. \n## Step 1.5: Meaning Completion and Correction\n1.  **Correction Task:** Review the extracted **Meaning** fields. If a Meaning (Turkish or English) appears to be a **truncated, grammatically incomplete fragment** (e.g., \"Yıkamal\" instead of \"Yıkamak,\" or \"Var olm\" instead of \"Var Olmak\"), you **MUST** complete the word to its correct, full grammatical form.\n2.  **Constraint:** This step is a **correction**, not gap-filling. **Do not** count these minor completions toward the $35\\%$ missing fields limit defined in Step 2.\n## Step 2: Gap Analysis and Data Filling  1.  **Gap Check:** Review the organized data. Identify entries where one or more fields (**Kanji, Hiragana, Meaning**) are missing. 2.  **Constraint for Filling:** You may only research and fill the missing fields if the total number of missing fields across the *entire* input is **less than 35%** of the total possible fields.  , **DO NOT** attempt to fill any gaps. 3.  **Action:** If the $35\\%$ constraint is met, research the missing component (Kanji, Hiragana or Meaning (if Meaning is missing fill it with Turkish Meaning)) and complete the entry. **Do not** modify fields that already have data.\n## Step 3: Final Output & Error Handling\nThis final step enforces the output structure and defines the specific responses for failure situations. **The model MUST output a single, raw JSON object.**\n\n**ABSOLUTE RULE: OUTPUT FORMAT MUST BE RAW JSON STRING.**\nThe model MUST NOT use any markdown code blocks (e.g., ```json), and MUST NOT wrap the output in any programming or API calls (e.g., print(), call(), or **any function beginning with 'default_api'**). The output MUST begin with '{' and end with '}'.\n\n### 1. **Zero Data Protocol (Critical Failure)**\n* If the initial Step 1 filtering results in **ZERO** identified Japanese words or meaningful data components, you **MUST** immediately stop processing and output only the following raw JSON object:\n{\"status\": false,\"message\": \"Critical failure. No meaningful data could be extracted from the raw input text.\",\"entries\": []}\n### 2. Constraint Failure Protocol (Error Situation)**\nIf the $35\\%$ constraint in Step 2 is not met (i.e., too many fields are missing), you MUST immediately stop processing and output only the following raw JSON object:\n{\"status\": false,\"message\": \"Too much missing data. Exceeded 35% threshold for gap filling.\",\"entries\": []}\n### 3. Successful Output Protocol (Output Integration)**\nIf the $35\\%$ constraint is met and processing is complete, the output MUST be a single JSON object containing the finalized array of word entries. Do not include any text, notes, or explanations outside of this JSON block.The JSON object must use the following strict structure:\n{ \"status\": true,\"message\": \"Successful.\",\"entries\": [{\"Kanji\": \"今日\",\"Hiragana\": \"きょう\",\"Meaning\": \"(bugün)\"},{\"Kanji\": \"私\",\"Hiragana\": \"わたし\",\"Meaning\": \"I / me\"},// ... all other entries}\nIf a word dosen't have a kanji representetion like the word ある (Var olmak), you must place the word (hiragana or katakana) into kanji field. So your output for ある should be like {\"Kanji\": \"ある\",\"Hiragana\": \"\",\"Meaning\": \"Var olmak\"}.\n\n\n",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1024,
+        -528
+      ],
+      "id": "0ca9719f-9524-4e11-acdf-1a888cb4fde3",
+      "name": "AI Fields",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d494a6a1-3853-4c13-ac74-e66b8ac72417",
+              "name": "=itteration",
+              "value": "={{ $json.itteration + 1}} ",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "include": "selected",
+        "includeFields": "data, message.caption, output",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2064,
+        -512
+      ],
+      "id": "980619c2-1140-4cb4-8b16-e1c6c7da8df6",
+      "name": "Increase Itteration"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "97a1da9a-68ef-4815-8fe8-e7351376949e",
+              "name": "data",
+              "value": "data",
+              "type": "binary"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        -592
+      ],
+      "id": "4c4f469b-ec33-49a1-93f9-3cc14fe66573",
+      "name": "Telegram Filter"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1872,
+        -512
+      ],
+      "id": "9ffd1c80-88a0-4458-b759-8929862b559d",
+      "name": "Merge",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "w3q9u9lBl8416dkl",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/w3q9u9lBl8416dkl",
+          "cachedResultName": "TextAi"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "content": "={{ $json.content }}",
+            "systemMessage": "={{ $json.systemMessage }}"
+          },
+          "matchingColumns": [
+            "content",
+            "systemMessage"
+          ],
+          "schema": [
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "systemMessage",
+              "displayName": "systemMessage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1680,
+        -288
+      ],
+      "name": "Call TextAi",
+      "id": "5f51e797-0557-4dc7-a163-18a37460ce36"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "w3q9u9lBl8416dkl",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/w3q9u9lBl8416dkl",
+          "cachedResultName": "TextAi"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "content": "data",
+            "systemMessage": "={{ $json.systemMessage }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "systemMessage",
+              "displayName": "systemMessage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2432,
+        -176
+      ],
+      "id": "195ba520-5cb8-4c99-85c2-a0d3d6733b5d",
+      "name": "Call 'TextAi'"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2635c1d8-32a5-4d85-883a-b51ad3e67710",
+              "name": "systemMessage",
+              "value": "**TASK:** Act as a highly accurate text extraction and formatting engine. Your primary goal is to convert raw, unfiltered text into a single, structured JSON object containing a plaintext tabular report.\n\n**INPUT:** A raw, unfiltered block of text that is expected to contain Japanese words (Kanji, Kana) and corresponding meanings (Turkish or English).\n\n---\n\n## Output Requirements\n\n1.  **Format:** The final output **MUST** be a single JSON object. Do NOT include any text, explanations, or code wrappers (like ```json).\n2.  **JSON Structure:** The JSON object **MUST** contain only one key: `\"content\"`.\n3.  **Content Value:** The value associated with the `\"content\"` key must be the **entire extracted data** formatted as a plaintext tabular report (see Example Output below).\n\n---\n\n## Content Value Formatting\n\n* **Fields:** For every unique Japanese word found, you **MUST** extract and present the following fields in the exact order: **Kanji**, **Kana** (Hiragana or Katakana), and **Meaning** (Turkish or English).\n* **Separation:** Use a clear, consistent separator (e.g., a space or a pipe `|`) between fields. Use a **newline (\\n)** to separate individual word entries.\n* **Header:** Include a simple, informative header line at the very top of the report.\n* **Gaps:** If a field is missing, leave that position blank or insert a hyphen (`-`). **Do not** research or fill any gaps.\n\n---\n**ABSOLUTE RULE: OUTPUT FORMAT MUST BE RAW JSON STRING.**\nThe model MUST NOT use any markdown code blocks (e.g., ```json), and MUST NOT wrap the output in any programming or API calls (e.g., print(), call(), or **any function beginning with 'default_api'**). The output MUST begin with '{' and end with '}'.\n\n\n## Example of Final Output\n\n(Your entire output should look exactly like this single JSON block)\n{\n\"content\": \"Kanji Kana Meaning\\n洗う あらう Yıkamak\\nある ある Var olmak\\n遊ぶ あそぶ Oynamak\\n会う あう Buluşmak\\n\"\n}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "include": "selected",
+        "includeFields": "data, itteration",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2208,
+        -304
+      ],
+      "id": "1d67e6c6-da82-449e-932b-660346853730",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        976,
+        -288
+      ],
+      "id": "41561691-b33b-4daf-aace-1a9e1d686c5e",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "947fc1a2-f3b1-44d6-a29a-d6ca310b2d9e",
+              "name": "content",
+              "value": "={{ $json.output.content }}",
+              "type": "string"
+            },
+            {
+              "id": "6d956bc2-ff17-4c3e-afd1-e50532f2c269",
+              "name": "systemMessage",
+              "value": "={{ $json.systemMessage }}",
+              "type": "string"
+            },
+            {
+              "id": "66f8ffba-2212-47a7-b813-17eb4d5aa6e7",
+              "name": "itteration",
+              "value": "={{ $json.itteration }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1184,
+        -288
+      ],
+      "id": "da83dbec-b974-43b5-adcc-2fe6475e89a6",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2640,
+        -288
+      ],
+      "id": "eecb10f0-ff70-4ac4-b38c-3f806d0f434d",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e1f5a739-caa7-449e-913b-1c8588df87b6",
+              "name": "itteration",
+              "value": "={{ $json.itteration }}",
+              "type": "number"
+            },
+            {
+              "id": "4f2d3ed7-9b60-4a4b-83a0-1354cd7a04e2",
+              "name": "output.content",
+              "value": "={{ $json.output.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2832,
+        -176
+      ],
+      "id": "5e01c7d8-30cf-4912-981d-b57d0b299dbb",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "errorMessage": "Text Extractor could not find any text on the given image."
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        576,
+        -368
+      ],
+      "id": "6b2c020d-ca58-477b-9ad8-18fb70866fe5",
+      "name": "No Text Found"
+    },
+    {
+      "parameters": {
+        "errorMessage": "={{ $json.output.message }}"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        2064,
+        -176
+      ],
+      "id": "f7449e2f-a90a-41cd-aa0d-0cf55fa18fe6",
+      "name": "Itteration TimeOut"
+    },
+    {
+      "parameters": {
+        "errorMessage": "Words Already Exists"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        3456,
+        -176
+      ],
+      "id": "73a3606d-5d63-42b2-9018-cd6961ad90e6",
+      "name": "All Words Exists"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5bca107e-13a3-44b6-8322-3fd0ebf44f00",
+              "leftValue": "={{ $json.content }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        -592
+      ],
+      "id": "9c04afa9-84f4-4bea-a7fb-749bd9a586b1",
+      "name": "If TextExtraction"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f9aafdba-a46f-4e16-9d3a-878256913645",
+              "leftValue": "={{ $json.output.status }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2256,
+        -512
+      ],
+      "id": "8e92fb2a-ff55-49e9-a524-b133cbe14d40",
+      "name": "If AI Output"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fdaa54b6-7d06-4080-98a1-d5192cbce2bb",
+                    "leftValue": "={{ $json.itteration }}",
+                    "rightValue": 1,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Second Itter"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "083eb8a0-f9e2-4cf2-8f29-7c1bf23217e2",
+                    "leftValue": "={{ $json.itteration }}",
+                    "rightValue": 2,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Fail"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1888,
+        -288
+      ],
+      "id": "aa0d749e-d077-4741-9dca-7d4884ef68a4",
+      "name": "Switch Itteration"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the array from the input\nconst entries = $input.first().json.output.entries\n\n// Map each item to a string\nconst lines = entries.map(item => {\n  return `${item.Kanji} -- ${item.Hiragana} -> ${item.Meaning}`;\n});\n\n// Join the strings with newlines\nconst outputText = lines.join('\\n');\n\n// Return a new item with this text\nreturn [{ json: { plain_text_output: outputText } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2464,
+        -528
+      ],
+      "id": "e62e6246-dbe5-40da-93cf-e34af4383c8d",
+      "name": "Data Edit Message"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "message": "=Result:\\n{{ $json.plain_text_output }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {
+          "limitWaitTime": {
+            "values": {
+              "resumeAmount": 15,
+              "resumeUnit": "minutes"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2656,
+        -528
+      ],
+      "id": "514dde55-6be3-466f-95ff-3c53ef1102df",
+      "name": "Send/Get Approve",
+      "webhookId": "b294ade1-ff9f-439b-92c4-7dc27198b5e2",
+      "credentials": {
+        "telegramApi": {
+          "id": "5ur02MzHjnADO6CG",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9a84f065-e59b-4046-8204-48c87a435dab",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2864,
+        -528
+      ],
+      "id": "4eb48ee4-e26b-49d7-8330-2e458b1e3b04",
+      "name": "If Approve"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9610961c-9747-4ad4-be3e-527f961a25d3",
+              "leftValue": "={{$json}}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3456,
+        -416
+      ],
+      "id": "4afe6d96-6fde-4265-beed-9c2613ac0885",
+      "name": "If Table Result",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Get the array of entries from the previous node's output\n// We map the $input array to get the .json payload from each item.\nconst entries = $('Table Check').all().map(item => item.json);\n\n// 2. Use .map() to transform each entry into the new \"note\" format\nconst notes = entries.map(entry => {\n  return {\n    deckName: \"Automated\",\n    modelName: \"Automated\",\n    fields: {\n      Word: entry.Kanji,\n      Transliteration: entry.Hiragana,\n      Meaning: entry.Meaning\n    }\n  };\n});\n\n// 3. Build the final API payload object\nconst payload = {\n  action: \"addNotes\",\n  version: 6,\n  params: {\n    notes: notes // This is the array we just created\n  }\n};\n\n// 4. Return the new payload as the output of this node\n// This returns a single item containing the complete payload\nreturn [{ json: payload }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4032,
+        -416
+      ],
+      "id": "267909c5-6bd8-45f3-91f9-77c62c4bb8ff",
+      "name": "Data Transformation Anki"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://172.17.0.1:8765",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4240,
+        -416
+      ],
+      "id": "29b1e269-6fb9-4854-8842-e4e0b4c82156",
+      "name": "Anki Add"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "82753a33-20fd-4c38-a358-493d78c26561",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4432,
+        -416
+      ],
+      "id": "e8288548-6845-4f1e-a37d-4062432de714",
+      "name": "If AnkiAdd"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://172.17.0.1:8765",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"action\": \"sync\",\n    \"version\": 6\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4672,
+        -416
+      ],
+      "id": "64ae3553-6cab-42f1-80d1-6b167596b656",
+      "name": "Anki Sync"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6c621ecc-f6fd-4e86-8ba5-5f5c9d7233f2",
+              "leftValue": "={{ $json.result }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "3ed30bc9-a242-4b7e-8b1e-b7427ce4ff5f",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4880,
+        -416
+      ],
+      "id": "7bd846bc-0f99-43a8-a718-4c49ef752a75",
+      "name": "If AnkiSync"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://172.17.0.1:8765",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"action\": \"sync\",\n    \"version\": 6\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3632,
+        -416
+      ],
+      "id": "7fb6ec8a-1452-46a4-bd71-8b1b5382950d",
+      "name": "Anki Sync1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6c621ecc-f6fd-4e86-8ba5-5f5c9d7233f2",
+              "leftValue": "={{ $json.result }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "3ed30bc9-a242-4b7e-8b1e-b7427ce4ff5f",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3808,
+        -416
+      ],
+      "id": "a673e848-7c68-4ef0-be86-917a92e9bdc5",
+      "name": "If AnkiSync1"
+    },
+    {
+      "parameters": {
+        "errorMessage": "=Anki Operation Fail"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        3872,
+        -176
+      ],
+      "id": "fcaaf5d3-4a32-46a2-9bbf-49d0bf5ff2c3",
+      "name": "Anki Errors"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "ic0D3xvPQvzKPtdp",
+          "mode": "list",
+          "cachedResultName": "Kanji",
+          "cachedResultUrl": "/projects/KfD03bNsyFDHoWgI/datatables/ic0D3xvPQvzKPtdp"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Kanji": "={{ $json.Kanji }}",
+            "Hiragana": "={{ $json.Hiragana }}",
+            "Meaning": "={{ $json.Meaning }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Kanji",
+              "displayName": "Kanji",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Hiragana",
+              "displayName": "Hiragana",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Meaning",
+              "displayName": "Meaning",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "optimizeBulk": true
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        5200,
+        -496
+      ],
+      "id": "e0addaf0-9a81-4a58-bae7-59cb2164fe86",
+      "name": "Insert row"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "4ahpiSKkyZsIDvt7",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/4ahpiSKkyZsIDvt7",
+          "cachedResultName": "TextTableInsert"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        3248,
+        -512
+      ],
+      "id": "93aa8bf0-ebad-4dae-a893-f42af22ba358",
+      "name": "Table Check",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $('If AI Output').item.json }}\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3056,
+        -512
+      ],
+      "id": "f6b97073-8d5d-4ae3-b434-8f655834eae3",
+      "name": "Words Json"
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch"
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        5056,
+        -496
+      ],
+      "id": "5a06e9cb-c63a-4fba-986f-8ac70f0c7f35",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "Anki Add and Sync Sucessfull!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        5520,
+        -752
+      ],
+      "id": "fd5bd1c1-9122-4a18-8dc0-9d2366f126d3",
+      "name": "Send Success",
+      "webhookId": "b294ade1-ff9f-439b-92c4-7dc27198b5e2",
+      "executeOnce": true,
+      "credentials": {
+        "telegramApi": {
+          "id": "5ur02MzHjnADO6CG",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        -768
+      ],
+      "id": "285d05e6-d523-4440-adc4-1de95f4a8911",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch"
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        5376,
+        -752
+      ],
+      "id": "dc910ef4-e38e-4710-876d-866e176c725f",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {
+        "content": "## Trigger and Inital edits\n",
+        "height": 560,
+        "width": 592,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -272,
+        -832
+      ],
+      "typeVersion": 1,
+      "id": "dfdd2b89-0820-43d4-9f1b-cad5c87ad391",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## AI Check/Organizer with full AI fallback\n",
+        "height": 688,
+        "width": 2112,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        912,
+        -640
+      ],
+      "typeVersion": 1,
+      "id": "f66fc168-58bd-4c44-a386-b74ce7ed8d94",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Get Aproval from user\n",
+        "height": 304,
+        "width": 416,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2608,
+        -640
+      ],
+      "typeVersion": 1,
+      "id": "72baec79-d4c7-48ca-823b-c637e00ae00a",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## AnkiConnect Opertaions\nSync -> Add -> Sync\n\n",
+        "height": 528,
+        "width": 1632,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3408,
+        -560
+      ],
+      "typeVersion": 1,
+      "id": "0108dcaa-058d-4443-9b12-cbc2c9c06b02",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Check Table and Exclude Duplicates\n\n",
+        "height": 448,
+        "width": 384,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3024,
+        -640
+      ],
+      "typeVersion": 1,
+      "id": "7217fdc8-12b2-4838-807c-fe6a5f911de9",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Add Words Into Table\n",
+        "height": 224,
+        "width": 288,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        5040,
+        -560
+      ],
+      "typeVersion": 1,
+      "id": "3c79b605-0b3e-4885-af18-60845dd8632c",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## Send Success Message\n",
+        "height": 256,
+        "width": 528,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        5328,
+        -816
+      ],
+      "typeVersion": 1,
+      "id": "162d5067-6f0b-48ed-8396-e2ea7dcac9f6",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "## Text Extractor\n",
+        "height": 416,
+        "width": 592,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        320,
+        -640
+      ],
+      "typeVersion": 1,
+      "id": "d443afd1-234b-4796-bb0d-06107a5b7a54",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "66d9c92b-afef-4d0c-a188-771e0d4afbc3",
+              "leftValue": "={{ $binary.data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "e8ab092a-b9d2-4c83-86de-8be43508096a",
+              "leftValue": "={{ $binary.data.mimeType }}",
+              "rightValue": "image/",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -48,
+        -592
+      ],
+      "id": "4ea11c74-3ad1-4ee1-9f37-919afd97f62a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "errorMessage": "No file attached or file type is not supported."
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        160,
+        -416
+      ],
+      "id": "1aded47b-de55-465c-9e32-4ab7446c61a9",
+      "name": "File Type Not Accepted"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 144,
+        "width": 192,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        112,
+        -432
+      ],
+      "typeVersion": 1,
+      "id": "9b5bce8d-95d4-45a2-8be0-aa97c0b56f49",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 144,
+        "width": 160,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        544,
+        -384
+      ],
+      "typeVersion": 1,
+      "id": "a0687a06-9440-42f3-9f2f-f6b49cc5c581",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 144,
+        "width": 160,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2032,
+        -192
+      ],
+      "typeVersion": 1,
+      "id": "484517d4-999c-4ea4-ab51-37292847061c",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 144,
+        "width": 160,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3424,
+        -192
+      ],
+      "typeVersion": 1,
+      "id": "b7285b1f-f300-4ae6-98bf-ba906fc849ac",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 144,
+        "width": 160,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3840,
+        -192
+      ],
+      "typeVersion": 1,
+      "id": "6460669c-068d-4225-b7a3-5c49b8f6c961",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        3056,
+        -352
+      ],
+      "id": "a7b57a7c-9e8a-426d-9230-f04f0b8e5196",
+      "name": "Cancel"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        5680,
+        -752
+      ],
+      "id": "d4aba6ec-7f85-4b15-8b6c-dc27339baf7d",
+      "name": "Finish"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'TextExtractor'": {
+      "main": [
+        [
+          {
+            "node": "If TextExtraction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure Fields": {
+      "main": [
+        [
+          {
+            "node": "Call 'TextExtractor'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Call TextAi",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Increase Itteration": {
+      "main": [
+        [
+          {
+            "node": "If AI Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Filter": {
+      "main": [
+        [
+          {
+            "node": "Azure Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Increase Itteration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call TextAi": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Call 'TextAi'",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'TextAi'": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Call TextAi",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "If TextExtraction": {
+      "main": [
+        [
+          {
+            "node": "AI Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Text Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If AI Output": {
+      "main": [
+        [
+          {
+            "node": "Data Edit Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch Itteration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Itteration": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Itteration TimeOut",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Edit Message": {
+      "main": [
+        [
+          {
+            "node": "Send/Get Approve",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send/Get Approve": {
+      "main": [
+        [
+          {
+            "node": "If Approve",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Approve": {
+      "main": [
+        [
+          {
+            "node": "Words Json",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cancel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Table Result": {
+      "main": [
+        [
+          {
+            "node": "Anki Sync1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "All Words Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Transformation Anki": {
+      "main": [
+        [
+          {
+            "node": "Anki Add",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anki Add": {
+      "main": [
+        [
+          {
+            "node": "If AnkiAdd",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If AnkiAdd": {
+      "main": [
+        [
+          {
+            "node": "Anki Sync",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Anki Errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anki Sync": {
+      "main": [
+        [
+          {
+            "node": "If AnkiSync",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If AnkiSync": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Anki Errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anki Sync1": {
+      "main": [
+        [
+          {
+            "node": "If AnkiSync1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If AnkiSync1": {
+      "main": [
+        [
+          {
+            "node": "Data Transformation Anki",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Anki Errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Table Check": {
+      "main": [
+        [
+          {
+            "node": "If Table Result",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert row": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Words Json": {
+      "main": [
+        [
+          {
+            "node": "Table Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Send Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Operation, do nothing1": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Telegram Filter",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "File Type Not Accepted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Success": {
+      "main": [
+        [
+          {
+            "node": "Finish",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": 600,
+    "availableInMCP": false,
+    "errorWorkflow": "EWaS93OKDas5MV4y"
+  },
+  "versionId": "8c168cbe-6bf1-4b0c-9fac-2111fb9539cd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f2231c63e1e4ae7cfba5a14a6ed098d320bf50b920ac7343f55b1b02afcbc0ec"
+  },
+  "id": "ZoB64gHkn4rTxaLX",
+  "tags": []
+}
